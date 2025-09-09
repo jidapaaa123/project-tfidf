@@ -113,6 +113,10 @@ for file_name in list_of_documents:
         })
 
 df = pd.DataFrame(all_data)
-df = df.sort_values(by="TF.IDF", ascending=False)
 
-print(df)
+# chunk_size = 1000
+# for i in range(0, len(df), chunk_size):
+#     df.iloc[i:i+chunk_size].to_csv(f"all_data_part{i//chunk_size + 1}.csv", index=False)
+
+
+# df.to_csv(f"all_data_whole.csv", index=False)
