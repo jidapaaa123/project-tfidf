@@ -17,12 +17,22 @@ total_words_data = {}
 # [document] = {word_frequency, word_count}
 documents_data = {}
 
+# CALCULATING TF AND IDF AND TF.IDF
+# [word] = idf
+word_idf = {}
+
+# [(word, doc)] = tf
+word_doc_tf = {}
+
+# [(word, doc)] = tf.idf
+tf_idf = {}
+
 
 for file_name in os.listdir(data_dir):
     full_path = data_dir + '\\' + file_name
     num_of_documents += 1
     with open(full_path, 'r', encoding='utf-8') as file:
-        content = file.read()
+        content = file.read().lower()
         split_results = re.split(delimiting_pattern, content)
         words = [r for r in split_results if r.strip()]
         doc_counter = Counter(words)
@@ -36,10 +46,14 @@ for file_name in os.listdir(data_dir):
         for key in doc_counter.keys():
             if key not in total_words_data:
                 total_words_data[key] = [file_name]
-
             else:
                 total_words_data[key].append(file_name)
 
+            word_doc_tf[(key, file_name)] = doc_counter[key] / doc_data["word_count"]
+
+
+# Sort by alph. order
+total_words_data = dict(sorted(total_words_data.items()))
 
 def word_count_of_doc(file_name: str):
     full_path = data_dir + '\\' + file_name
@@ -57,7 +71,31 @@ def doc_freq_of_word(word: str):
     return len(total_words_data[word])
 
 
-print(word_count_of_doc("gatech.txt"))
-print(list_of_documents)
-print(list_of_documents.index("gatech.txt"))
-print(doc_freq_of_word("mission"))
+# IDF Calculation, TF.IDF Calculation
+for word in total_words_data.keys():
+    word_idf[word] = num_of_documents / doc_freq_of_word(word)
+
+    for doc in list_of_documents:
+        try:
+            tf_idf[(word, doc)] = word_doc_tf[(word, doc)] * word_idf[word]
+        except KeyError as e:
+            # every word has an IDF, but might not have a TF for a specific doc
+            # if this error is thrown, (word, doc) pairing does not exist because
+            # the doc never found the word in it
+            # => TF = 0
+            tf_idf[(word, doc)] = 0
+
+word_idf = dict(sorted(word_idf.items()))
+
+def all_data_for_word_in_doc(word: str, doc: str):
+    return {
+        "doc_word_freq": documents_data[doc]["word_frequency"][word],
+        "doc_word_count": documents_data[doc]["word_count"],
+        "doc_list": total_words_data[word]
+    }
+
+# print(word_doc_tf["mission", "gatech.txt"])
+print(tf_idf["mission", "gatech.txt"])
+print(all_data_for_word_in_doc("mission", "gatech.txt"))
+
+
