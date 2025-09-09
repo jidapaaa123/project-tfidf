@@ -1,6 +1,7 @@
 import re
 import os
 from collections import Counter 
+import pandas as pd
 
 root_dir = os.getcwd()
 data_dir = root_dir + (r"\data")
@@ -54,6 +55,7 @@ for file_name in os.listdir(data_dir):
 
 # Sort by alph. order
 total_words_data = dict(sorted(total_words_data.items()))
+print(f"Total words: {len(total_words_data)}")
 
 def word_count_of_doc(file_name: str):
     full_path = data_dir + '\\' + file_name
@@ -83,6 +85,7 @@ for word in total_words_data.keys():
             # if this error is thrown, (word, doc) pairing does not exist because
             # the doc never found the word in it
             # => TF = 0
+            word_doc_tf[(word, doc)] = 0
             tf_idf[(word, doc)] = 0
 
 word_idf = dict(sorted(word_idf.items()))
@@ -94,8 +97,22 @@ def all_data_for_word_in_doc(word: str, doc: str):
         "doc_list": total_words_data[word]
     }
 
-# print(word_doc_tf["mission", "gatech.txt"])
-print(tf_idf["mission", "gatech.txt"])
-print(all_data_for_word_in_doc("mission", "gatech.txt"))
 
 
+# Data Organization/Visualization:
+all_data = []
+
+for file_name in list_of_documents:
+    for word in total_words_data.keys():
+        all_data.append({
+            "word": word,
+            "in_doc": file_name,
+            "TF": word_doc_tf[(word, file_name)],
+            "IDF": word_idf[word],
+            "TF.IDF": tf_idf[(word, file_name)]
+        })
+
+df = pd.DataFrame(all_data)
+df = df.sort_values(by="TF.IDF", ascending=False)
+
+print(df)
